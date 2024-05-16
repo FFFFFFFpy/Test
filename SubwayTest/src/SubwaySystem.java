@@ -1,20 +1,16 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class SubwaySystem {
     Map<String, Station> stationMap;
     Map<String, Line> lineMap;
-    List<Edge> edges;
 
     SubwaySystem(String filePath) throws IOException {
         this.stationMap = new HashMap<>();
         this.lineMap = new HashMap<>();
-        this.edges = new ArrayList<>();
 
         // 从文件中读取数据
         readFromFile(filePath);
@@ -24,28 +20,24 @@ public class SubwaySystem {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
         while ((line = reader.readLine()) != null) {
-            String[] parts = line.split(",");
+            String[] parts = line.split("\t");
             if (parts.length == 3) {
-                String stationAName = parts[0].trim();
-                String stationBName = parts[1].trim();
-                int distance = Integer.parseInt(parts[2].trim());
+                String[] stationNames = parts[0].split("---");
+                double distance = Double.parseDouble(parts[2]);
 
-                Station stationA = this.stationMap.computeIfAbsent(stationAName, name -> new Station(name));
-                Station stationB = this.stationMap.computeIfAbsent(stationBName, name -> new Station(name));
+                // 创建或获取站点
+                Station fromStation = this.stationMap.computeIfAbsent(stationNames[0], name -> new Station(name));
+                Station toStation = this.stationMap.computeIfAbsent(stationNames[1], name -> new Station(name));
 
-                Line line = this.lineMap.values().stream()
-                        .filter(l -> l.stations.contains(stationA) && l.stations.contains(stationB))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException(
-                                "Line not found for stations: " + stationAName + " and " + stationBName));
+                // 创建或获取线路
+                Line currentLine = this.lineMap.computeIfAbsent(stationNames[0] + "-" + stationNames[1], name -> new Line(name));
+                currentLine.addStation(fromStation, new HashMap<>(Map.of(toStation, distance)));
+                currentLine.addStation(toStation, new HashMap<>(Map.of(fromStation, distance)));
 
-                Edge edge = new Edge(stationA, stationB, distance);
-                this.edges.add(edge);
+                // 添加站点到线路
+                fromStation.addLine(currentLine);
+                toStation.addLine(currentLine);
             }
         }
         reader.close();
     }
-
-    // ...其他方法保持不变
-
-}
