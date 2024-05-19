@@ -1,10 +1,18 @@
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 class Station {
     String name;
+    Set<Line> lines;
 
     Station(String name) {
         this.name = name;
+        this.lines = new HashSet<>();
+    }
+
+    void addLine(Line line) {
+        this.lines.add(line);
     }
 
     @Override
